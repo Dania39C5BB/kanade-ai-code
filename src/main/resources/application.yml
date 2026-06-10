@@ -1,6 +1,13 @@
 spring:
   application:
     name: kanade-ai-code
+  # mysql
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/kanade
+    username: root
+    password: your_password
+
 
 server:
   port: 8123
