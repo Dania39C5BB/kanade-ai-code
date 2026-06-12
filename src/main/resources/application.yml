@@ -7,6 +7,8 @@ spring:
     url: jdbc:mysql://localhost:3306/kanade
     username: root
     password: your_password
+  profiles:
+    active: local
 
 
 server:
