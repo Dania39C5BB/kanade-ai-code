@@ -12,9 +12,10 @@ import java.util.regex.Pattern;
  */
 public class MultiFileCodeParser implements CodeParser<MultiFileCodeResult> {
 
-    private static final Pattern HTML_CODE_PATTERN = Pattern.compile("```html\\s*\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
-    private static final Pattern CSS_CODE_PATTERN = Pattern.compile("```css\\s*\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
-    private static final Pattern JS_CODE_PATTERN = Pattern.compile("```(?:js|javascript)\\s*\\n([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
+    // 使用 \\s* 而非 \\s*\\n，避免 AI 输出格式细微偏差（如换行缺失）导致匹配失败
+    private static final Pattern HTML_CODE_PATTERN = Pattern.compile("```html\\s*([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
+    private static final Pattern CSS_CODE_PATTERN = Pattern.compile("```css\\s*([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
+    private static final Pattern JS_CODE_PATTERN = Pattern.compile("```(?:js|javascript)\\s*([\\s\\S]*?)```", Pattern.CASE_INSENSITIVE);
 
     @Override
     public MultiFileCodeResult parseCode(String codeContent) {
@@ -39,18 +40,25 @@ public class MultiFileCodeParser implements CodeParser<MultiFileCodeResult> {
     }
 
     /**
-     * 根据正则模式提取代码
+     * 根据正则提取代码，合并所有匹配块（防止 AI 输出多个同语言代码块时只取第一个）
      *
      * @param content 原始内容
      * @param pattern 正则模式
-     * @return 提取的代码
+     * @return 提取的代码（多个块合并，用换行分隔）
      */
     private String extractCodeByPattern(String content, Pattern pattern) {
         Matcher matcher = pattern.matcher(content);
-        if (matcher.find()) {
-            return matcher.group(1);
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find()) {
+            String code = matcher.group(1);
+            if (code != null && !code.trim().isEmpty()) {
+                if (sb.length() > 0) {
+                    sb.append("\n");
+                }
+                sb.append(code.trim());
+            }
         }
-        return null;
+        return sb.length() > 0 ? sb.toString() : null;
     }
 }
 

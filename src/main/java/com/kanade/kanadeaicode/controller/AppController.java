@@ -29,6 +29,7 @@ import com.kanade.kanadeaicode.service.AppService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,8 @@ public class AppController {
         Flux<String> contentFlux = appService.chatToGenCode(appId, message, loginUser);
         // 转换为 ServerSentEvent 格式
         return contentFlux
+                // 延迟30ms，避免前端接收太快导致 逐字效果显示不好
+                .delayElements(Duration.ofMillis(30))
                 //对流中的每个内容块进行处理
                 .map(chunk -> {
                     // 将内容包装成JSON对象
