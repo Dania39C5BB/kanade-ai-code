@@ -7,6 +7,8 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.kanade.kanadeaicode.constant.AppConstant;
 import com.kanade.kanadeaicode.core.AiCodeGeneratorFacade;
+import com.kanade.kanadeaicode.core.builder.VueProjectBuilder;
+import com.kanade.kanadeaicode.core.handler.StreamHandlerExecutor;
 import com.kanade.kanadeaicode.core.parser.CodeParserExecutor;
 import com.kanade.kanadeaicode.core.saver.CodeFileSaverExecutor;
 import com.kanade.kanadeaicode.exception.BusinessException;
@@ -61,6 +63,12 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
     @Resource
     private ChatHistoryService chatHistoryService;
+
+    @Resource
+    private StreamHandlerExecutor streamHandlerExecutor;
+
+    @Resource
+    private VueProjectBuilder vueProjectBuilder;
 
     @Override
     public AppVo getAppVO(App app) {
@@ -152,26 +160,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
         // 6.调用 AI 生成代码
         Flux<String> codeFlux = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
-        StringBuilder aiResponeBuilder = new StringBuilder();
-
         //7.收集AI响应的内容 并且在完成后保存记录到对话历史
-        return codeFlux
-                .map(chunk -> {
-                    aiResponeBuilder.append(chunk);
-                    return chunk;
-                })
-                .doOnComplete(() -> {
-                    // 流式返回完成后保存AI 消息到对话历史表中
-                    String aiResponeString = aiResponeBuilder.toString();
-                    if(StrUtil.isNotBlank(aiResponeString)){
-                        chatHistoryServiceImpl.addChatHistory(appId, aiResponeBuilder.toString(), ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
-                    }
-                })
-                .doOnError(error -> {
-                    //如果AI回复失败 也要记录错误消息
-                    String errorMessage = "AI回复失败" + error.getMessage();
-                    chatHistoryServiceImpl.addChatHistory(appId, errorMessage, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
-                });
+        return streamHandlerExecutor.doExecute(codeFlux, chatHistoryService, appId, loginUser, codeGenTypeEnum);
+
     }
 
     @Override
@@ -201,7 +192,20 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         if (!sourceDir.exists() || !sourceDir.isDirectory()) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "应用代码不存在，请先生成代码");
         }
-        // 7. 复制文件到部署目录
+        // 7. Vue项目特殊处理，执行构建
+        CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getEnumByValue(codeGenType);
+        if (codeGenTypeEnum == CodeGenTypeEnum.VUE_PROJECT) {
+            // Vue 项目需要构建
+            boolean buildSuccess = vueProjectBuilder.buildProject(sourceDirPath);
+            ThrowUtils.throwIf(!buildSuccess, ErrorCode.SYSTEM_ERROR, "Vue 项目构建失败，请检查代码和依赖");
+            // 检查 dist 目录是否存在
+            File distDir = new File(sourceDirPath, "dist");
+            ThrowUtils.throwIf(!distDir.exists(), ErrorCode.SYSTEM_ERROR, "Vue 项目构建完成但未生成 dist 目录");
+            // 将 dist 目录作为部署源
+            sourceDir = distDir;
+            log.info("Vue 项目构建成功，将部署 dist 目录: {}", distDir.getAbsolutePath());
+        }
+        // 8. 复制文件到部署目录
         String deployDirPath = AppConstant.CODE_DEPLOY_ROOT_DIR + File.separator + deployKey;
         try {
             FileUtil.copyContent(sourceDir, new File(deployDirPath), true);
