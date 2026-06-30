@@ -3,6 +3,7 @@ package com.kanade.kanadeaicode.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.kanade.kanadeaicode.ai.AiCodeGenTypeRoutingService;
 import com.kanade.kanadeaicode.annotation.AuthCheck;
 import com.kanade.kanadeaicode.common.DeleteRequest;
 import com.kanade.kanadeaicode.constant.AppConstant;
@@ -54,6 +55,10 @@ public class AppController {
 
     @Resource
     private ProjectDownloadService projectDownloadService;
+
+    @Resource
+    private AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
+
 
 
     /**
@@ -177,7 +182,10 @@ public class AppController {
         // 应用名称暂时为 initPrompt 前 12 位
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
         // 暂时设置为多文件生成
-        app.setCodeGenType(CodeGenTypeEnum.VUE_PROJECT.getValue());
+//        app.setCodeGenType(CodeGenTypeEnum.VUE_PROJECT.getValue());
+        //使用 AI 智能选择代码生成类型
+        CodeGenTypeEnum selectedCodeGenType = aiCodeGenTypeRoutingService.routeCodeGenType(initPrompt);
+        app.setCodeGenType(selectedCodeGenType.getValue());
         // 插入数据库
         boolean result = appService.save(app);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
