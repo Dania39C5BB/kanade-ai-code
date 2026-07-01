@@ -130,7 +130,7 @@ public class JsonMessageStreamHandler {
                 chatHistoryStringBuilder.append(fullOutput);
 
                 // 随机分块 + 随机延迟，模拟真人打字的不均匀节奏
-                List<String> chunks = splitIntoRandomChunks(fullOutput, 2, 10);
+                List<String> chunks = splitIntoRandomChunks(fullOutput, 10, 30);
                 if (chunks.isEmpty()) {
                     return Flux.empty();
                 }
