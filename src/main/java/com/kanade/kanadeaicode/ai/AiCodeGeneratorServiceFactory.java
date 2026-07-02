@@ -2,7 +2,7 @@ package com.kanade.kanadeaicode.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.kanade.kanadeaicode.ai.tools.FileWriteTool;
+import com.kanade.kanadeaicode.ai.tools.*;
 import com.kanade.kanadeaicode.config.ReasoningStreamingChatModelConfig;
 import com.kanade.kanadeaicode.exception.BusinessException;
 import com.kanade.kanadeaicode.exception.ErrorCode;
@@ -94,7 +94,13 @@ public class AiCodeGeneratorServiceFactory {
             case VUE_PROJECT -> AiServices.builder(AiCodeGeneratorService.class)
                     .streamingChatModel(reasoningStreamingChatModel)
                     .chatMemoryProvider(memoryId -> chatMemory)
-                    .tools(new FileWriteTool())
+                    .tools(
+                            new FileWriteTool(),
+                            new FileReadTool(),
+                            new FileModifyTool(),
+                            new FileDirReadTool(),
+                            new FileDeleteTool()
+                    )
                     //如果没有工具匹配 则返回该信息
                     .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                             toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
