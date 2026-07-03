@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.kanade.kanadeaicode.ai.AiCodeGenTypeRoutingServiceFactory;
 import com.kanade.kanadeaicode.constant.AppConstant;
 import com.kanade.kanadeaicode.core.AiCodeGeneratorFacade;
 import com.kanade.kanadeaicode.core.builder.VueProjectBuilder;

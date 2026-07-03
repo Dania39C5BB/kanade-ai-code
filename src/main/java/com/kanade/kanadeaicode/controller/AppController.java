@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.kanade.kanadeaicode.ai.AiCodeGenTypeRoutingService;
+import com.kanade.kanadeaicode.ai.AiCodeGenTypeRoutingServiceFactory;
 import com.kanade.kanadeaicode.annotation.AuthCheck;
 import com.kanade.kanadeaicode.common.DeleteRequest;
 import com.kanade.kanadeaicode.constant.AppConstant;
@@ -57,8 +58,7 @@ public class AppController {
     private ProjectDownloadService projectDownloadService;
 
     @Resource
-    private AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
-
+    private AiCodeGenTypeRoutingServiceFactory aiCodeGenTypeRoutingServiceFactory;
 
 
     /**
@@ -183,7 +183,8 @@ public class AppController {
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
         // 暂时设置为多文件生成
 //        app.setCodeGenType(CodeGenTypeEnum.VUE_PROJECT.getValue());
-        //使用 AI 智能选择代码生成类型
+        //使用 AI 智能选择代码生成类型(多例模式)
+        AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService = aiCodeGenTypeRoutingServiceFactory.createAiCodeGenTypeRoutingService();
         CodeGenTypeEnum selectedCodeGenType = aiCodeGenTypeRoutingService.routeCodeGenType(initPrompt);
         app.setCodeGenType(selectedCodeGenType.getValue());
         // 插入数据库

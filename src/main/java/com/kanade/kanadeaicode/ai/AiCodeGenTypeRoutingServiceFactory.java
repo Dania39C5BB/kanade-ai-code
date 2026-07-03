@@ -1,6 +1,8 @@
 package com.kanade.kanadeaicode.ai;
 
+import com.kanade.kanadeaicode.utils.SpringContextUtil;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -16,16 +18,26 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AiCodeGenTypeRoutingServiceFactory {
 
-    @Resource
-    private ChatModel chatModel;
+//    @Resource(name = "openAiChatModel")
+//    private ChatModel chatModel;
 
     /**
      * 创建AI代码生成类型路由服务实例
      */
-    @Bean
-    public AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService() {
+    public AiCodeGenTypeRoutingService createAiCodeGenTypeRoutingService() {
+        //使用多例模式的 StreamingChatModel 解决并发问题
+        ChatModel chatModel = SpringContextUtil.getBean("routingChatModelPrototype", ChatModel.class);
         return AiServices.builder(AiCodeGenTypeRoutingService.class)
                 .chatModel(chatModel)
                 .build();
     }
+
+    /**
+     * 默认提供一个Bean实例
+     */
+    @Bean
+    public AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService() {
+        return createAiCodeGenTypeRoutingService();
+    }
+
 }
