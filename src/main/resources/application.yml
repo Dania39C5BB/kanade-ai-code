@@ -12,6 +12,7 @@ spring:
     redis:
       host: localhost
       port: 6379
+      database: 0
       password:
       ttl: 3600
   # session 配置
@@ -48,9 +49,9 @@ knife4j:
 # 添加 COS 对象存储配置（需要从腾讯云获取）
 cos:
   client:
-    host:
-    secretId:
-    secretKey:
+    host: your_cos_host
+    secretId: your_cos_secretId
+    secretKey: your_cos_secretKey
     region: ap-beijing
     bucket: kanade-ai-agent-1313093521
 
