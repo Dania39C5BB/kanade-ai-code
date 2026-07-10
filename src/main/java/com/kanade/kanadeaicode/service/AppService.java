@@ -6,6 +6,7 @@ import com.kanade.kanadeaicode.model.vo.AppVo;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import com.kanade.kanadeaicode.model.entity.App;
+import jakarta.servlet.http.HttpServletRequest;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public interface AppService extends IService<App> {
      * @param loginUser 登录用户
      * @return 部署结果url地址
      */
-    String deploy(Long appId, User loginUser);
+    String deploy(Long appId, User loginUser, HttpServletRequest request);
 
-    void generateAppScreenshotAsync(Long appId, String appUrl);
+    void generateAppScreenshotAsync(Long appId, String appUrl , String sessionId);
 }

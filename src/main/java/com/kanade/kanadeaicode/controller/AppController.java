@@ -119,7 +119,7 @@ public class AppController {
         // 获取当前登录用户
         User loginUser = userService.getLoginUser(request);
         // 调用服务部署应用
-        String deployUrl = appService.deploy(appId, loginUser);
+        String deployUrl = appService.deploy(appId, loginUser , request);
         return ResultUtils.success(deployUrl);
     }
 

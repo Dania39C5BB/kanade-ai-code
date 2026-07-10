@@ -30,8 +30,10 @@ import com.kanade.kanadeaicode.model.entity.App;
 import com.kanade.kanadeaicode.mapper.AppMapper;
 import com.kanade.kanadeaicode.service.AppService;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.View;
 import reactor.core.publisher.Flux;
@@ -74,6 +76,10 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
     @Resource
     private ScreenshotService screenshotService;
+
+    @Value("${code.deploy-host:http://localhost}")
+    private String deployHost;
+
 
     @Override
     public AppVo getAppVO(App app) {
@@ -171,7 +177,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
     @Override
-    public String deploy(Long appId, User loginUser) {
+    public String deploy(Long appId, User loginUser , HttpServletRequest request) {
         // 1. 参数校验
         ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用 ID 不能为空");
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR, "用户未登录");
@@ -225,10 +231,12 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         boolean updateResult = this.updateById(updateApp);
         ThrowUtils.throwIf(!updateResult, ErrorCode.OPERATION_ERROR, "更新应用部署信息失败");
         // 10. 返回可访问的 URL
+//        String appDeployUrl = String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
         // 10. 构建应用访问 URL
-        String appDeployUrl = String.format("%s/%s/", AppConstant.CODE_DEPLOY_HOST, deployKey);
+        String sessionId = request.getSession().getId();
+        String appDeployUrl = String.format("%s/%s/", deployHost, deployKey);
         // 11. 异步生成截图并更新应用封面
-        generateAppScreenshotAsync(appId, appDeployUrl);
+        generateAppScreenshotAsync(appId, appDeployUrl , sessionId);
         return appDeployUrl;
 
 
@@ -270,11 +278,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
      * @param appUrl 应用访问URL
      */
     @Override
-    public void generateAppScreenshotAsync(Long appId, String appUrl) {
+    public void generateAppScreenshotAsync(Long appId, String appUrl , String sessionId) {
         // 使用虚拟线程异步执行
         Thread.startVirtualThread(() -> {
             // 调用截图服务生成截图并上传
-            String screenshotUrl = screenshotService.generateAndUploadScreenshot(appUrl);
+            String screenshotUrl = screenshotService.generateAndUploadScreenshot(appUrl , sessionId);
             // 更新应用封面字段
             App updateApp = new App();
             updateApp.setId(appId);

@@ -12,9 +12,9 @@ spring:
     redis:
       host: localhost
       port: 6379
-      database: 0
       password:
       ttl: 3600
+      database: 0
   # session 配置
   session:
     store-type: redis
@@ -26,12 +26,17 @@ spring:
 
 server:
   port: 8123
+  # 信任 Nginx/反向代理转发的头信息，使后端在 HTTP 连接下也能识别外部 HTTPS 请求，正确设置 Secure Cookie
+  forward-headers-strategy: framework
   servlet:
     context-path: /api
-    # cookie 30 天过期
     session:
       cookie:
         max-age: 2592000
+        # SameSite=None + Secure: 允许跨站请求携带 Cookie（部署到服务器时浏览器不会阻止 SESSION）
+        # 注意：SameSite=None 必须配合 Secure，即服务器必须通过 HTTPS 访问或前面有 Nginx 终止 TLS
+        same-site: none
+        secure: true
 
 # springdoc-openapi
 springdoc:
@@ -55,3 +60,6 @@ cos:
     region: ap-beijing
     bucket: kanade-ai-agent-1313093521
 
+# 部署路径
+code:
+  deploy-host: http://localhost

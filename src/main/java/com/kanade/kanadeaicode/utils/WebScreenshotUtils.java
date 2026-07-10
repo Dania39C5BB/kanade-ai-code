@@ -9,10 +9,7 @@ import com.kanade.kanadeaicode.exception.ErrorCode;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -31,8 +28,10 @@ public class WebScreenshotUtils {
     private static volatile WebDriver webDriver = null;
 
     // 使用相对路径指向 resources 目录下的 ChromeDriver
+//    private static final String CHROME_DRIVER_PATH =
+//            System.getProperty("user.dir") + "/src/main/resources/web_drivers/chromedriver.exe";
     private static final String CHROME_DRIVER_PATH =
-            System.getProperty("user.dir") + "/src/main/resources/web_drivers/chromedriver.exe";
+            System.getProperty("user.dir") + "/src/main/resources/web_drivers/chromedriver";
     private static final int DEFAULT_WIDTH = 1600;
     private static final int DEFAULT_HEIGHT = 900;
 
@@ -58,7 +57,7 @@ public class WebScreenshotUtils {
      * @param webUrl 要截图的网址
      * @return 压缩后的截图文件路径，失败返回 null
      */
-    public static String saveWebPageScreenshot(String webUrl) {
+    public static String saveWebPageScreenshot(String webUrl , String sessionId) {
         // 非空校验
         if (StrUtil.isBlank(webUrl)) {
             log.error("网页截图失败，url为空");
@@ -81,6 +80,17 @@ public class WebScreenshotUtils {
 
             // 访问网页
             driver.get(webUrl);
+
+            if (StrUtil.isNotBlank(sessionId)) {
+                Cookie sessionCookie = new Cookie.Builder("SESSION", sessionId)
+                        .path("/api") // 必须与 F12 里的 Cookie Path 保持一致
+                        .isHttpOnly(false)
+                        .build();
+                driver.manage().addCookie(sessionCookie);
+
+                // 3. 刷新页面，让浏览器带着 Cookie 重新请求 API
+                driver.navigate().refresh();
+            }
 
             // 等待网页加载
             waitForPageLoad(driver);
