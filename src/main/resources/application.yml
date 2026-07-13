@@ -1,6 +1,10 @@
 spring:
   application:
     name: kanade-ai-code
+  servlet:
+    multipart:
+      # 单个文件大小上限，设置为 2MB
+      max-file-size: 2MB
   # mysql
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
