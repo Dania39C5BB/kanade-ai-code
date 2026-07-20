@@ -67,3 +67,7 @@ cos:
 # 部署路径
 code:
   deploy-host: http://localhost
+
+# Pexels 图片搜索配置
+pexels:
+  api-key: your api key
