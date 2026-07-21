@@ -1,6 +1,5 @@
 package com.kanade.kanadeaicode.langgraph4j.model;
 
-import com.kanade.kanadeaicode.langgraph4j.state.ImageCategoryEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

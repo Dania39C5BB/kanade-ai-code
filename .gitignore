@@ -3,7 +3,7 @@ application-local.yml
 application-prod.yml
 tmp
 
-
+test/
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar

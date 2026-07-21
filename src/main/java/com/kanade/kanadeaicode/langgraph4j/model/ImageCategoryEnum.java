@@ -1,4 +1,4 @@
-package com.kanade.kanadeaicode.langgraph4j.state;
+package com.kanade.kanadeaicode.langgraph4j.model;
 
 import cn.hutool.core.util.ObjUtil;
 import lombok.Getter;
